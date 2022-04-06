@@ -1,33 +1,34 @@
+const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert').strict;
 
-exports.insertDocument = (db, document, collection, callback) => {
-    const coll = db.collection(collection);
-    coll.insertOne(document, (err, result) => {
-        assert.strictEqual(err, null);
-        callback(result);
-    });
-};
+const url = 'mongodb://localhost:27017/';
+const dbname = 'nucampsite';
 
-exports.findDocuments = (db, collection, callback) => {
-    const coll = db.collection(collection);
-    coll.find().toArray((err, docs) => {
-        assert.strictEqual(err, null);
-        callback(docs);
-    });
-};
+MongoClient.connect(url, { useUnifiedTopology: true }, (err, client) => {
 
-exports.removeDocument = (db, document, collection, callback) => {
-    const coll = db.collection(collection);
-    coll.deleteOne(document, (err, result) => {
-        assert.strictEqual(err, null);
-        callback(result);
-    });
-};
+    assert.strictEqual(err, null);
 
-exports.updateDocument = (db, document, update, collection, callback) => {
-    const coll = db.collection(collection);
-    coll.updateOne(document, { $set: update }, null, (err, result) => {
+    console.log('Connected correctly to server');
+
+    const db = client.db(dbname);
+
+    db.dropCollection('campsites', (err, result) => {
         assert.strictEqual(err, null);
-        callback(result);
+        console.log('Dropped Collection', result);
+
+        const collection = db.collection('campsites');
+
+        collection.insertOne({name: "Breadcrumb Trail Campground", description: "Test"},
+        (err, result) => {
+            assert.strictEqual(err, null);
+            console.log('Insert Document:', result.ops);
+
+            collection.find().toArray((err, docs) => {
+                assert.strictEqual(err, null);
+                console.log('Found Documents:', docs);
+
+                client.close();
+            });
+        });
     });
-};
+});
